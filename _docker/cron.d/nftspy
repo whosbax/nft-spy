@@ -1,0 +1,1 @@
+5 * * * * root python3 /root/app/main.py > /var/log/nftspy.log 2>&1

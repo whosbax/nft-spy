@@ -1,0 +1,19 @@
+<body>
+    <div id="vis"></div>
+    <script src="http://unpkg.com/candela/dist/candela.min.js"></script>
+    <script>
+        var el = document.createElement('div')
+        document.body.appendChild(el);
+      
+        var data = [];
+        #PUSH_DATA#
+        var vis = new candela.components.Histogram(el, {
+          data: data,
+          x: '#DISPLAY_NAME#',
+          width: 1200,
+          height: 840
+        });
+        vis.render();
+    </script>
+</body>
+    

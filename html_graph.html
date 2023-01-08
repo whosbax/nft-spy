@@ -1,0 +1,20 @@
+<body>
+    <div id="vis"></div>
+    <script src="http://unpkg.com/candela/dist/candela.min.js"></script>
+    <script>
+        var el = document.createElement('div')
+        document.body.appendChild(el);
+      
+        var data = [];
+        var data = []; 
+data.push({ 'Aquafarmer #6133': '333'}); 
+
+        var vis = new candela.components.Histogram(el, {
+          data: data,
+          x: 'Aquafarmer #6133',
+          width: 2000,
+          height: 1500
+        });
+        vis.render();
+    </script>
+</body>

@@ -1,0 +1,12 @@
+pymongo
+python-dotenv
+pycodestyle
+requests
+jsonschema
+wrapt
+pytz
+path
+Flask
+pycandela
+IPython
+Candela
