@@ -63,7 +63,3 @@ Deploy:
 http://127.0.0.1:5000/policy//asset-name/
 
 
-## Documentation
-
-[Documentation](https://linktodocumentation)
-
