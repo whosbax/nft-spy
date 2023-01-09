@@ -26,23 +26,6 @@
   #python3 ./api.py &
 ```
 
-
-
-
-## API Reference
-
-#### Get Asset history
-
-```http
-  GET /policy/<policy>/asset-name/<asset>
-```
-
-| Parameter | Type     | Description                       |
-| :-------- | :------- | :-------------------------------- |
-| `policy`  | `string` | **Required**. Collection Policy   |
-| `asset`   | `string` | **Required**. Asset id            |
-
-
 ##### Demo
 ```http://127.0.0.1/policy/86ec26a91051e4d42df00b023202e177a0027dca4294a20a0326a116/asset/86ec26a91051e4d42df00b023202e177a0027dca4294a20a0326a116617175616661726d65723631333```
 
