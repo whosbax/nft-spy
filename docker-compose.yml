@@ -31,7 +31,7 @@ services:
     command:
       tail -f /dev/null
     ports:
-     - "80:80"      
+     - "80:8080"      
 
 networks:
   net-main:
