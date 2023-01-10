@@ -1,19 +1,80 @@
-<body>
+<script src='http://unpkg.com/candela/dist/candela.min.js'></script>
     <div id="vis"></div>
-    <script src="http://unpkg.com/candela/dist/candela.min.js"></script>
+
     <script>
-        var el = document.createElement('div')
+/*
+        var el = document.createElement('div');
         document.body.appendChild(el);
-      
-        var data = [];
+         #ARR_DATA#
         #PUSH_DATA#
-        var vis = new candela.components.Histogram(el, {
-          data: data,
+        var vis1 = new candela.components.Histogram(el, {
+          data: #ARR_DATA_NAME#,
           x: '#DISPLAY_NAME#',
-          width: 1200,
-          height: 840
+          width: 700,
+          height: 400
         });
-        vis.render();
+        vis1.render();
+        el.style.float="left";
+  el.style.removeProperty("display");        
+
+
+*/
+  var el = document.createElement('div');
+  document.body.appendChild(el);
+
+   #ARR_DATA#
+  #PUSH_DATA#
+
+  var vis2 = new candela.components.LineChart(el, {
+    data: #ARR_DATA_NAME#,
+    x: '#DISPLAY_NAME#',
+    y: '#DISPLAY_NAME#',
+    width: 700,
+    height: 400,
+    showPoints:true,
+    colorSeries:false
+  });
+  vis2.render();        
+
+  el.style.float="left";
+  el.style.removeProperty("display");
+/*
+  var el = document.createElement('div');
+  document.body.appendChild(el);
+
+   #ARR_DATA#
+  #PUSH_DATA#
+
+  var vis3 = new candela.components.ScatterPlot(el, {
+    data: #ARR_DATA_NAME#,
+    x: '#DISPLAY_NAME#',
+    y: '#DISPLAY_NAME#',
+    width: 700,
+    height: 400
+  });
+  vis3.render();
+  el.style.float="left";
+  el.style.removeProperty("display");
+
+
+  var el = document.createElement('div');
+  document.body.appendChild(el);
+
+   #ARR_DATA#
+  #PUSH_DATA#
+
+  var vis4 = new candela.components.BarChart(el, {
+    data: #ARR_DATA_NAME#,
+    x: '#DISPLAY_NAME#',
+    y: '#DISPLAY_NAME#',
+    width: 700,
+    height: 400    
+  });
+  vis4.render();
+
+  el.style.float="left";
+  el.style.removeProperty("display");
+*/
     </script>
-</body>
+
     

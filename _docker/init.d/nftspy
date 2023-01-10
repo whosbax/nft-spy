@@ -1,0 +1,25 @@
+#! /bin/bash
+# /etc/init.d/nftspy
+
+case "$1" in
+  start)
+    echo  "Starting nftspy"
+    $( which python3 ) $APP_PATH/main.py > /var/log/nftspy.log 2>&1 &
+    echo  "Starting flask"
+    $( which python3 ) $APP_PATH/api.py > /var/log/flask.log 2>&1 &
+    ;;
+  stop)
+    echo  "Stopping nftspy"
+    kill -9 $( pgrep python3 ) 
+    ;;
+  status)
+    echo  "Stopping nftspy"
+     tail -5  /var/log/nftspy.log &&  tail -5  /var/log/flask.log
+    ;;
+  *)
+    echo "Usage: /etc/init.d/nftspy {start|stop}"
+    exit 1
+    ;;
+esac
+ 
+exit 0

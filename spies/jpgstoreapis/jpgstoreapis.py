@@ -29,18 +29,17 @@ class JpgStoreApi(ASpy, ISpy):
         super().__init__(self.__class__.__name__)
         self.mongo_client = \
             DbMongo.load_db("{}_db".format(self.__class__.__name__))
-        if(JpgStoreApi.CONFIG is None):
-            JpgStoreApi.CONFIG = JpgStoreApi.loadConfig()
+        if (JpgStoreApi.CONFIG is None):
+            JpgStoreApi.loadConfig()
 
     def get_db(self):
         return self.mongo_client
 
     def i_get_collections(self) -> any:
         """
-        Get NFT in collection
-            Raise: NotImplementedError: abstract
+        Get collections
         """
-        raise NotImplementedError
+        return JpgStoreApi.CONFIG['collections']
 
     @Trace()
     def get_collection(
@@ -59,15 +58,16 @@ class JpgStoreApi(ASpy, ISpy):
             action,
             policy
         )
-        is_collection_empty = \
+        collection_exist = \
             len(list(self.mongo_client[db_collection_name].find({})))
-        if (not is_collection_empty or
+        if (not collection_exist or
                 cached is False):
             response = requests.get(
                 self.get_url_action(policy, action)
             )
             json_collection = response.json()
-            if (json_collection):
+            logging.debug("response[{}]".format(json_collection))
+            if (json_collection and "error" not in json_collection):
                 logging.debug(
                     "insert {action} collection: {policy}".format(
                         action=action,
@@ -79,9 +79,12 @@ class JpgStoreApi(ASpy, ISpy):
                         lambda asset: {**asset, **{'last_update':  dt}},
                         json_collection
                     ))
-                self.mongo_client[db_collection_name].drop()
-                self.mongo_client[db_collection_name]\
-                    .insert_many(json_collection)
+                if (not collection_exist):
+                    self.mongo_client[db_collection_name].drop()
+                    self.mongo_client[db_collection_name]\
+                        .insert_many(json_collection)
+            else:
+                json_collection = {}
         else:
             json_collection = self.mongo_client[db_collection_name].find({})
         return json_collection
@@ -112,7 +115,7 @@ class JpgStoreApi(ASpy, ISpy):
                     {**asset, **{'last_update':  dt}}
                 )
                 if (db_asset['price_lovelace'] > price_lovelace):
-                    print("Last price {display_name}: {last_price}\
+                    logging.debug("Last price {display_name}: {last_price}\
                          New price: {new_price}".format(
                             display_name=asset['display_name'],
                             last_price=db_asset['price_lovelace'],
@@ -124,7 +127,7 @@ class JpgStoreApi(ASpy, ISpy):
                         db_asset=db_asset,
                         fresh_asset=asset
                     )
-                )                    
+                )
                 logging.debug(
                     "Updated asset:\
 {asset_id} from {policy}\nPrice {last_price}->{new_price}"
@@ -136,7 +139,7 @@ class JpgStoreApi(ASpy, ISpy):
                     )
                 )
 
-    def i_get_listings(self, policy: str, action: str, cached: bool = False):
+    def i_get_listings(self, policy: str, cached: bool = False):
         """
         Get listing of collections
         """
@@ -149,29 +152,37 @@ class JpgStoreApi(ASpy, ISpy):
         """
         return self.get_collection(policy, JpgStoreApi.SALES_ACTION, cached)
 
+    @Trace()
     @classmethod
-    def loadConfig(cls) -> yaml:
+    def loadConfig(cls) -> any:
         yaml_cfg = None
-        current_path=os.path.dirname(os.path.realpath(__file__))
+        current_path = os.path.dirname(os.path.realpath(__file__))
         config_path = "{}/config/config.yml".format(current_path)
         with open(config_path, "r") as ymlfile:
-            yaml_cfg = yaml.load(ymlfile)
+            yaml_cfg = yaml.load(ymlfile, Loader=yaml.FullLoader)
+        if (cls.CONFIG is None):
+            cls.CONFIG = yaml_cfg
         return yaml_cfg
-    
+
     @Trace()
     def get_asset_history(self, policy: str, asset_id: str):
         db_collection_listing = "{}_{}".format(
             JpgStoreApi.LISTINGS_ACTION,
             policy
-        )        
+        )
         db_filter = {'asset_id': asset_id}
         return self.mongo_client[db_collection_listing].find(
-            db_filter, {"price_lovelace": True, 
-            "last_update": True, "display_name": True }
+            db_filter, {
+                "price_lovelace": True,
+                "last_update": True,
+                "display_name": True
+            }
         ).sort("last_update", pymongo.DESCENDING)
 
     def process(self) -> any:
-        collections = JpgStoreApi.CONFIG['collections']
+        collections = self.i_get_collections()
         for policy in collections:
-            for asset in self.i_get_listings(policy,JpgStoreApi.LISTINGS_ACTION):
-                self.update_asset(policy,asset)
+            for asset in self.i_get_listings(
+                policy, JpgStoreApi.LISTINGS_ACTION
+            ):
+                self.update_asset(policy, asset)

@@ -7,11 +7,14 @@ import logging.config
 import yaml
 import wrapt
 
+
 class Trace:
     """Trace to debug"""
+
     _is_logger_config = None
     _loggers = {}
     INT_RUNTIME_ID = 0
+
     @staticmethod
     def _get_object_fullname(instance):
         class_ = instance.__class__
@@ -21,7 +24,7 @@ class Trace:
         return str_module + '.' + class_.__qualname__
 
     @staticmethod
-    def get_logger(instance, str_logger_name=None, str_prefix:str=""):
+    def get_logger(instance, str_logger_name=None, str_prefix: str = ""):
         """
         Common logger
         """
@@ -32,13 +35,15 @@ class Trace:
             str_path = f"{str_dir_path}/config/trace.yml"
             with open(str_path, encoding='utf-8') as yaml_conf_file:
                 Trace._is_logger_config = True
-                logging.config.dictConfig(\
-                    yaml.safe_load(yaml_conf_file))
+                logging.config.dictConfig(
+                    yaml.safe_load(yaml_conf_file)
+                )
         str_prefix = " - {}" if str_prefix else ""
-        str_logger_name = f"[{Trace.INT_RUNTIME_ID}] - {str_logger_name} {str_prefix}"
+        str_logger_name = \
+            f"[{Trace.INT_RUNTIME_ID}] - {str_logger_name} {str_prefix}"
         if str_logger_name not in Trace._loggers:
             Trace._loggers[str_logger_name] = \
-            logging.getLogger(str_logger_name)
+                logging.getLogger(str_logger_name)
         return Trace._loggers[str_logger_name]
 
     def __init__(self, level=logging.DEBUG, logger_name=""):
@@ -49,8 +54,8 @@ class Trace:
     def __call__(self, wrapped, instance, args, kwargs):
         str_logger_name = self.logger_name
         if not str_logger_name:
-            class_name=Trace._get_object_fullname(instance)
-            method_name=wrapped.__name__
+            class_name = Trace._get_object_fullname(instance)
+            method_name = wrapped.__name__
             str_logger_name = f"{class_name}.{method_name}"
         logger = Trace.get_logger(None, str_logger_name)
         logger.setLevel(self.level)

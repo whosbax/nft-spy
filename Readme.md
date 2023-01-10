@@ -16,16 +16,20 @@
 ##### Deployment
 
 ```bash
-  #build and run
-  docker-compose --build -d
+  #force build and run
+  #docker-compose --build -d
+  
+  #run containers
+  docker-compose up
   
   #enter container
-  docker exec -ti jpeg_snipe_py-jpeg_snipe-1 /bin/bash
+  docker exec -ti $( docker ps | grep -v mongo | grep -Eo "^[0-9a-z]+" ) /bin/bash
   
-  #start flask (started in build)
-  #python3 ./api.py &
+  #service
+  #/etc/init.d/nftspy
 ```
 
 ##### Demo
-```http://127.0.0.1/policy/86ec26a91051e4d42df00b023202e177a0027dca4294a20a0326a116/asset/86ec26a91051e4d42df00b023202e177a0027dca4294a20a0326a116617175616661726d65723631333```
-
+```http://127.0.0.1/policy/86ec26a91051e4d42df00b023202e177a0027dca4294a20a0326a116/asset/86ec26a91051e4d42df00b023202e177a0027dca4294a20a0326a116617175616661726d657237353535```
+```http://127.0.0.1/all```
+```http://127.0.0.1/all/limit/1```

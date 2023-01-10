@@ -2,13 +2,14 @@
 import logging
 from utils.trace import Trace
 
+
 class ASpy():
     """ define common behavor """
 
-    def __init__(self, spy_name: str=None):
+    def __init__(self, spy_name: str = None):
         """ set spyer name
         """
-        self.spy_name=spy_name
+        self.spy_name = spy_name
         self._logger = Trace.get_logger(self.spy_name)
 
     def set_logger_level(self, log_level=logging.DEBUG):

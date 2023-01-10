@@ -7,6 +7,3 @@ wrapt
 pytz
 path
 Flask
-pycandela
-IPython
-Candela

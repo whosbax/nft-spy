@@ -24,12 +24,18 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    healthcheck:
+      test: ["CMD", "/root/app/run.sh"]
+      interval: 30s
+      timeout: 2m30s
+      retries: 10
+      start_period: 1ms
     depends_on:
       - mongo
     networks:
       net-main:
-    command:
-      tail -f /dev/null
+    command: 
+      tail -f /var/log/nftspy.log
     ports:
      - "80:8080"      
 

@@ -1,6 +1,7 @@
 from spies.jpgstoreapis.jpgstoreapis import JpgStoreApi
+import time
 
-spy_jpg_store = JpgStoreApi()
-spy_jpg_store.process()
-
-
+while True:
+    spy_jpg_store = JpgStoreApi()
+    spy_jpg_store.process()
+    time.sleep(120)
