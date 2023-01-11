@@ -16,7 +16,6 @@ case "$1" in
     echo  "Stopping nftspy"
      tail -5  /var/log/nftspy.log &&  tail -5  /var/log/flask.log
     ;;
-  *)
   restart)
     echo  "stop & start nftspy"
     kill -9 $( pgrep python3 ) 
@@ -24,7 +23,7 @@ case "$1" in
     $( which python3 ) $APP_PATH/api.py > /var/log/flask.log 2>&1 &
     ;;
   *)
-    echo "Usage: /etc/init.d/nftspy {start|stop}"
+    echo "Usage: /etc/init.d/nftspy {start|stop|restart}"
     exit 1
     ;;
 esac

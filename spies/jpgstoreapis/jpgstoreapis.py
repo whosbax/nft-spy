@@ -80,7 +80,7 @@ class JpgStoreApi(ASpy, ISpy):
                         json_collection
                     ))
                 if (not collection_exist):
-                    self.mongo_client[db_collection_name].drop()
+                    #self.mongo_client[db_collection_name].drop()
                     self.mongo_client[db_collection_name]\
                         .insert_many(json_collection)
             else:
