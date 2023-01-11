@@ -60,26 +60,26 @@ class JpgStoreApi(ASpy, ISpy):
         )
         collection_exist = \
             len(list(self.mongo_client[db_collection_name].find({})))
-        if (not collection_exist or
-                cached is False):
+        if (cached is False or
+                not collection_exist):
             response = requests.get(
                 self.get_url_action(policy, action)
             )
             json_collection = response.json()
             logging.debug("response[{}]".format(json_collection))
             if (json_collection and "error" not in json_collection):
-                logging.debug(
-                    "insert {action} collection: {policy}".format(
-                        action=action,
-                        policy=policy
-                    )
-                )
                 dt = datetime.now(pytz.timezone(JpgStoreApi.TIME_ZONE))
                 json_collection = list(map(
                         lambda asset: {**asset, **{'last_update':  dt}},
                         json_collection
                     ))
                 if (not collection_exist):
+                    logging.debug(
+                        "insert {action} collection: {policy}".format(
+                            action=action,
+                            policy=policy
+                        )
+                    )
                     #self.mongo_client[db_collection_name].drop()
                     self.mongo_client[db_collection_name]\
                         .insert_many(json_collection)
