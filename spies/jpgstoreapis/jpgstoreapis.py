@@ -110,10 +110,6 @@ class JpgStoreApi(ASpy, ISpy):
         db_asset = self.mongo_client[db_collection_listing].find_one(db_filter)
         if (db_asset):
             if (db_asset['price_lovelace'] != price_lovelace):
-                dt = datetime.now(pytz.timezone(JpgStoreApi.TIME_ZONE))
-                self.mongo_client[db_collection_listing].insert_one(
-                    {**asset, **{'last_update':  dt}}
-                )
                 if (db_asset['price_lovelace'] > price_lovelace):
                     logging.debug("Last price {display_name}: {last_price}\
                          New price: {new_price}".format(
@@ -138,6 +134,17 @@ class JpgStoreApi(ASpy, ISpy):
                         new_price=asset['price_lovelace']
                     )
                 )
+            else:
+                logging.debug("Same price, nothing to do...")
+                return False
+        else:
+            logging.debug("New saved asset[{}]".format(
+                asset
+            ))
+        dt = datetime.now(pytz.timezone(JpgStoreApi.TIME_ZONE))
+        self.mongo_client[db_collection_listing].insert_one(
+                    {**asset, **{'last_update':  dt}}
+        )
 
     def i_get_listings(self, policy: str, cached: bool = False):
         """
