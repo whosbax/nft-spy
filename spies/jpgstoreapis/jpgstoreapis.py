@@ -80,7 +80,6 @@ class JpgStoreApi(ASpy, ISpy):
                             policy=policy
                         )
                     )
-                    #self.mongo_client[db_collection_name].drop()
                     self.mongo_client[db_collection_name]\
                         .insert_many(json_collection)
             else:
