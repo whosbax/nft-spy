@@ -80,6 +80,8 @@
 ##### Demo
 ```http://127.0.0.1/policy/86ec26a91051e4d42df00b023202e177a0027dca4294a20a0326a116/asset/86ec26a91051e4d42df00b023202e177a0027dca4294a20a0326a116617175616661726d657237353535```
 
-```http://127.0.0.1/all```
+```http://127.0.0.1/all/limit/12/style/bar```
 
-```http://127.0.0.1/all/limit/1```
+```http://127.0.0.1/all/limit/12/style/line```
+
+```http://127.0.0.1/all/limit/12/style/polarArea```

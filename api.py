@@ -9,7 +9,14 @@ def home(name):
     return 'hello world'
 
 
-@app.route('/policy/<policy>/asset/<asset>', methods=['POST', 'GET'])
+@app.route(
+    '/policy/<policy>/asset/<asset>/style/<style>',
+    methods=['POST', 'GET']
+)
+@app.route(
+    '/policy/<policy>/asset/<asset>',
+    methods=['POST', 'GET']
+)
 def show_asset_history(policy, asset, style='bar'):
     spy_jpg_store = JpgStoreApi()
     chart_template = {
@@ -23,13 +30,17 @@ def show_asset_history(policy, asset, style='bar'):
                 }
             ]
         },
-        "options": {
-            "scales": {
-                "y": {
-                    "beginAtZero": "true"
+        'options': {
+            'animations': {
+                'tension': {
+                    'duration': '1000',
+                    'easing': 'linear',
+                    'from': 1,
+                    'to': 0,
+                    'loop': 'true'
                 }
             }
-        }
+        },
     }
     html = \
         "<script src='https://cdn.jsdelivr.net/npm/chart.js'></script> \n"
@@ -61,14 +72,18 @@ def show_asset_history(policy, asset, style='bar'):
     return html
 
 
-@app.route('/all', methods=['POST', 'GET'], defaults={'limit': None})
-@app.route('/all/limit/<limit>', methods=['POST', 'GET'])
+@app.route(
+    '/all',
+    methods=['POST', 'GET'],
+)
+@app.route(
+    '/all/limit/<limit>',
+    methods=['POST', 'GET'],
+)
 @app.route(
     '/all/limit/<limit>/style/<style>',
-    methods=['POST', 'GET'],
-    defaults={'limit': None, 'style': 'bar'}
 )
-def show_all(limit, style="bar"):
+def show_all(limit=None, style='bar'):
     spy_jpg_store = JpgStoreApi()
     chart_template = {
         "type": style,
@@ -81,13 +96,17 @@ def show_all(limit, style="bar"):
                 }
             ]
         },
-        "options": {
-            "scales": {
-                "y": {
-                    "beginAtZero": "true"
+        'options': {
+            'animations': {
+                'tension': {
+                    'duration': '1000',
+                    'easing': 'linear',
+                    'from': 1,
+                    'to': 0,
+                    'loop': 'true'
                 }
             }
-        }
+        },
     }
 
     html = ""
