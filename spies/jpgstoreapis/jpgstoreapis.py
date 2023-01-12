@@ -1,5 +1,5 @@
 """Jpgstore spy"""
-
+import time
 import os
 import logging
 import requests
@@ -24,6 +24,8 @@ class JpgStoreApi(ASpy, ISpy):
     LISTINGS_ACTION = "listings"
     TIME_ZONE = 'UTC'
     CONFIG = None
+    SLEEP_REQ_API = 30
+    SLEEP_PROCESS_API = 30
 
     def __init__(self):
         super().__init__(self.__class__.__name__)
@@ -65,6 +67,7 @@ class JpgStoreApi(ASpy, ISpy):
             has_results = True
             has_error = False
             while (has_results and not has_error):
+                time.sleep(JpgStoreApi.SLEEP_REQ_API)
                 url = self.get_url_action(policy, action, cursor)
                 response = requests.get(url)
                 self._logger.debug("Crawling[{}]".format(url))
@@ -189,4 +192,8 @@ class JpgStoreApi(ASpy, ISpy):
         collections = self.i_get_collections()
         for policy in collections:
             self._logger.debug("Get collection[{}]".format(policy))
-            self.i_get_listings(policy)
+            try:
+                self.i_get_listings(policy)
+            except Exception as exc:
+                self._logger.error(exc)
+                

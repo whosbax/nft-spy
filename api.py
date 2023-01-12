@@ -42,7 +42,7 @@ def show_all(limit):
     for collection in spy_jpg_store.CONFIG['collections']:
         i = 0
         for asset in spy_jpg_store.i_get_listings(collection, cached=True):
-            if (limit and i == limit):
+            if (limit and i == int(limit)):
                 break
             i = i+1
             data = spy_jpg_store.get_asset_history(
@@ -63,8 +63,9 @@ def show_all(limit):
                 html_graph = html_template.read()
 
                 html_graph = html_graph.replace(
-                    "<script \
-                    src='http://unpkg.com/candela/dist/candela.min.js'/>", ""
+                    "<script src='http://unpkg.com/\
+candela/dist/candela.min.js' />".strip(),
+                    ""
                 )
                 html_graph = html_graph.replace(
                     '#ARR_DATA_NAME#', "data_" + str(i)
