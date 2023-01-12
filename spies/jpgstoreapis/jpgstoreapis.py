@@ -18,7 +18,7 @@ class JpgStoreApi(ASpy, ISpy):
     """
 
     DOMAIN_SERVICE = "https://server.jpgstoreapis.com"
-    URL_PATTERN = "{}/policy/{}/{}?page=1&sortBy=price-low-to-high"
+    URL_PATTERN = "{}/policy/{}/{}?page={}&sortBy=price-low-to-high"
     URL_VERIFIED_COLLECTION = "{domain}/policy/verified?page=1"
     SALES_ACTION = "sales"
     LISTINGS_ACTION = "listings"
@@ -59,46 +59,45 @@ class JpgStoreApi(ASpy, ISpy):
             policy
         )
         collection_exist = \
-            len(list(self.mongo_client[db_collection_name].find({})))
-        if (cached is False or
-                not collection_exist):
-            response = requests.get(
-                self.get_url_action(policy, action)
-            )
-            json_collection = response.json()
-            logging.debug("response[{}]".format(json_collection))
-            if (json_collection and "error" not in json_collection):
-                dt = datetime.now(pytz.timezone(JpgStoreApi.TIME_ZONE))
-                json_collection = list(map(
-                        lambda asset: {**asset, **{'last_update':  dt}},
-                        json_collection
-                    ))
-                if (not collection_exist):
-                    logging.debug(
-                        "insert {action} collection: {policy}".format(
-                            action=action,
-                            policy=policy
-                        )
-                    )
-                    self.mongo_client[db_collection_name]\
-                        .insert_many(json_collection)
-            else:
-                json_collection = {}
+            bool(len(list(self.mongo_client[db_collection_name].find({}))))
+        if (not cached or not collection_exist):
+            cursor = 1
+            has_results = True
+            has_error = False
+            while (has_results and not has_error):
+                url = self.get_url_action(policy, action, cursor)
+                response = requests.get(url)
+                self._logger.debug("Crawling[{}]".format(url))
+                cursor = cursor + 1
+                json_collection = response.json()
+                has_results = bool(len(json_collection))
+                has_error = bool("error" in json_collection)
+                self._logger.debug("response[{}]".format(json_collection))
+                if (has_results and not has_error):
+                    for asset in json_collection:
+                        self.insert_asset(policy, asset)
+                elif has_error:
+                    self._logger.error("response api error[{}]" \
+                        .format(json_collection['error']))
+                    self._logger.debug("try with new ip...")
+                else:
+                    json_collection = {}
         else:
             json_collection = self.mongo_client[db_collection_name].find({})
         return json_collection
 
-    def get_url_action(self, policy: str, action: str = None) -> str:
+    def get_url_action(self, policy: str, action: str = None, cursor = 1) -> str:
         action = JpgStoreApi.LISTINGS_ACTION \
             if (action is None) else action
         return JpgStoreApi.URL_PATTERN.format(
             JpgStoreApi.DOMAIN_SERVICE,
             policy,
-            action
+            action,
+            cursor
         )
 
     @Trace()
-    def update_asset(self, policy: str, asset) -> any:
+    def insert_asset(self, policy: str, asset) -> any:
         db_collection_listing = "{}_{}".format(
             JpgStoreApi.LISTINGS_ACTION,
             policy
@@ -110,20 +109,20 @@ class JpgStoreApi(ASpy, ISpy):
         if (db_asset):
             if (db_asset['price_lovelace'] != price_lovelace):
                 if (db_asset['price_lovelace'] > price_lovelace):
-                    logging.debug("Last price {display_name}: {last_price}\
+                    self._logger.debug("Last price {display_name}: {last_price}\
                          New price: {new_price}".format(
                             display_name=asset['display_name'],
                             last_price=db_asset['price_lovelace'],
                             new_price=asset['price_lovelace']
                         )
                     )
-                logging.debug(
+                self._logger.debug(
                     "asset db:[{db_asset}] fresh[{fresh_asset}]".format(
                         db_asset=db_asset,
                         fresh_asset=asset
                     )
                 )
-                logging.debug(
+                self._logger.debug(
                     "Updated asset:\
 {asset_id} from {policy}\nPrice {last_price}->{new_price}"
                     .format(
@@ -134,16 +133,17 @@ class JpgStoreApi(ASpy, ISpy):
                     )
                 )
             else:
-                logging.debug("Same price, nothing to do...")
+                self._logger.debug("Same price, nothing to do...")
                 return False
         else:
-            logging.debug("New saved asset[{}]".format(
+            self._logger.debug("New saved asset[{}]".format(
                 asset
             ))
         dt = datetime.now(pytz.timezone(JpgStoreApi.TIME_ZONE))
         self.mongo_client[db_collection_listing].insert_one(
                     {**asset, **{'last_update':  dt}}
         )
+        return True
 
     def i_get_listings(self, policy: str, cached: bool = False):
         """
@@ -188,7 +188,5 @@ class JpgStoreApi(ASpy, ISpy):
     def process(self) -> any:
         collections = self.i_get_collections()
         for policy in collections:
-            for asset in self.i_get_listings(
-                policy, JpgStoreApi.LISTINGS_ACTION
-            ):
-                self.update_asset(policy, asset)
+            self._logger.debug("Get collection[{}]".format(policy))
+            self.i_get_listings(policy)
