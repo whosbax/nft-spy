@@ -1,3 +1,4 @@
+import copy
 from flask import Flask
 from spies.jpgstoreapis.jpgstoreapis import JpgStoreApi
 app = Flask(__name__)
@@ -9,86 +10,119 @@ def home(name):
 
 
 @app.route('/policy/<policy>/asset/<asset>', methods=['POST', 'GET'])
-def show_asset_history(policy, asset):
+def show_asset_history(policy, asset, style='bar'):
     spy_jpg_store = JpgStoreApi()
-    data = spy_jpg_store.get_asset_history(policy=policy, asset_id=asset)
-    asset_name = None
-    html_ = ""
-    arr_data = "var data = []; \n"
-    for asset_h in data:
-        if asset_name is None:
-            html_ = html_+"data.push({ '" + asset_h['display_name']+"': '" + \
-                str(int(0))+"'}); \n"
-            asset_name = asset_h['display_name']
-        html_ = html_+"data.push({ '" + asset_h['display_name']+"': '" + \
-            str(int(asset_h['price_lovelace'])//1000000)+"'}); \n"
+    chart_template = {
+        "type": style,
+        "data": {
+            "labels": [],
+            "datasets": [
+                {
+                    "data": [],
+                    "borderWidth":1
+                }
+            ]
+        },
+        "options": {
+            "scales": {
+                "y": {
+                    "beginAtZero": "true"
+                }
+            }
+        }
+    }
+    html = \
+        "<script src='https://cdn.jsdelivr.net/npm/chart.js'></script> \n"
+    datas = spy_jpg_store.get_asset_history(policy=policy, asset_id=asset)
+    file_template = open("template.html", "rt")
+    html_template = file_template.read()
+    html_template = html_template.replace(
+        '#COL#', str(policy).join([i for i in policy if not i.isdigit()])
+    )
+    chart = copy.deepcopy(chart_template)
+    i = 0
+    for asset_histo in datas:
+        if (not i):
+            chart['data']['datasets'][0]['label'] = \
+                asset_histo['display_name'] + "_" + str(policy)
+        price = str(int(asset_histo['price_lovelace'])//1000000)
+        chart['data']['labels'].append(
+            str(asset_histo['last_update'])
+        )
+        chart['data']['datasets'][0]['data'].append(
+            price
+        )
+    html_template = html_template.replace(
+        '#CHART#', str(chart)
+    )
+    file_template.close()
+    html = html + html_template
 
-    html_template = open("template.html", "rt")
-    html_graph = html_template.read()
-    html_graph = html_graph.replace('#ARR_DATA_NAME#', "data")
-    html_graph = html_graph.replace('#ARR_DATA#', arr_data)
-    html_graph = html_graph.replace('#PUSH_DATA#', html_)
-    html_graph = html_graph.replace('#DISPLAY_NAME#', asset_name)
-    html_graph = html_graph+" </body> \n"
-    html_template.close()
-    return html_graph
+    return html
 
 
 @app.route('/all', methods=['POST', 'GET'], defaults={'limit': None})
 @app.route('/all/limit/<limit>', methods=['POST', 'GET'])
-def show_all(limit):
+@app.route(
+    '/all/limit/<limit>/style/<style>',
+    methods=['POST', 'GET'],
+    defaults={'limit': None, 'style': 'bar'}
+)
+def show_all(limit, style="bar"):
     spy_jpg_store = JpgStoreApi()
-    all_html = ""
+    chart_template = {
+        "type": style,
+        "data": {
+            "labels": [],
+            "datasets": [
+                {
+                    "data": [],
+                    "borderWidth":1
+                }
+            ]
+        },
+        "options": {
+            "scales": {
+                "y": {
+                    "beginAtZero": "true"
+                }
+            }
+        }
+    }
+
+    html = ""
     for collection in spy_jpg_store.CONFIG['collections']:
-        i = 0
-        arr_data = "var data_"+str(collection)+" = []; \n"
-        html_ = ""
+        cursor = 0
+        file_template = open("template.html", "rt")
+        html_template = file_template.read()
+        html_template = html_template.replace(
+            '#COL#', str(collection)
+            .join([i for i in collection if not i.isdigit()])
+        )
+        chart = copy.deepcopy(chart_template)
+        chart['data']['datasets'][0]['label'] = str(collection)
         for asset in spy_jpg_store.i_get_listings(collection, cached=True):
-            if (limit and i == int(limit)):
+            if limit and cursor == int(limit):
                 break
-            i = i+1
-            data = spy_jpg_store.get_asset_history(
-                policy=collection, asset_id=asset['asset_id']
+            cursor = cursor + 1
+            price = str(int(asset['price_lovelace'])//1000000)
+            chart['data']['labels'].append(
+                asset['display_name']
             )
-            asset_name = None
-            for asset_h in data:
-                if asset_name is None:
-                    asset_name = asset_h['display_name']
-                html_ = html_ + "data_" + \
-                    str(collection)+".push({ asset:'" + asset_name + "',"
-                html_ = html_ + "price:'" + \
-                    str(int(asset_h['price_lovelace'])//1000000)+"',"
-                html_ = html_ + " date: '"+str(asset_h['last_update']) + "',"
-                html_ = html_ + "x:'"+str(i)+"'});"
-
-            html_template = open("template.html", "rt")
-            html_graph = html_template.read()
-
-        html_graph = html_graph.replace(
-            "<script src='http://unpkg.com/\
-candela/dist/candela.min.js' />".strip(),
-            ""
+            chart['data']['datasets'][0]['data'].append(
+                price
+            )
+        html_template = html_template.replace(
+            '#CHART#', str(chart)
         )
-        html_graph = html_graph.replace(
-            '#ARR_DATA_NAME#', "data_"+str(collection)
-        )
-        html_graph = html_graph.replace(
-            '#PUSH_DATA#', html_
-        )
-        html_graph = html_graph.replace(
-            '#ARR_DATA#', arr_data
-        )
-        html_graph = html_graph.replace(
-            '#DISPLAY_NAME#', asset_name
-        )
-        all_html = all_html+html_graph+"\n"
-        html_template.close()
-    all_html = \
+        file_template.close()
+        html = html + html_template
+    html = \
         "<script \
-        src='http://unpkg.com/candela/dist/candela.min.js'/> \n" + \
-        all_html
+        src='https://cdn.jsdelivr.net/npm/chart.js'> \n" + \
+        "</script> \n" + html
 
-    return all_html
+    return html
 
 
 if __name__ == '__main__':

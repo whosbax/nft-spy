@@ -55,23 +55,23 @@
       #...
 
   #group asset by name
-    db.listings_11ebbfbfd62985cbae7330b95488b9dcf17ecb5e728442031362ad81.aggregate(
+    db.listings_86ec26a91051e4d42df00b023202e177a0027dca4294a20a0326a116.aggregate(
       [
         {
           $group :
             {
-              _id : "$display_name",
-              totalSaleAmount: { $count: { } }
+              _id : "$asset_id",
+              count: { $count: { } }
             }
         },
         {
-          $match: { "totalSaleAmount": { $gt: 1 } }
+          $match: { "count": { $gt: 1 } }
         }
       ]
     );
 
   #search asset
-    db.listings_11ebbfbfd62985cbae7330b95488b9dcf17ecb5e728442031362ad81.fin({"display_name":"HungryCow#1277"})
+    db.listings_11ebbfbfd62985cbae7330b95488b9dcf17ecb5e728442031362ad81.find({"display_name":"HungryCow#1277"})
 
 
 ```
