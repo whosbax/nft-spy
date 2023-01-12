@@ -41,6 +41,8 @@ def show_all(limit):
     all_html = ""
     for collection in spy_jpg_store.CONFIG['collections']:
         i = 0
+        arr_data = "var data_"+str(collection)+" = []; \n"
+        html_ = ""
         for asset in spy_jpg_store.i_get_listings(collection, cached=True):
             if (limit and i == int(limit)):
                 break
@@ -50,37 +52,37 @@ def show_all(limit):
             )
             asset_name = None
             for asset_h in data:
-                arr_data = "var data_"+str(i)+" = []; \n"
-
                 if asset_name is None:
                     asset_name = asset_h['display_name']
+                html_ = html_ + "data_" + \
+                    str(collection)+".push({ asset:'" + asset_name + "',"
+                html_ = html_ + "price:'" + \
+                    str(int(asset_h['price_lovelace'])//1000000)+"',"
+                html_ = html_ + " date: '"+str(asset_h['last_update']) + "',"
+                html_ = html_ + "x:'"+str(i)+"'});"
 
-                html_ = "data_"+str(i)+".push({ '" + \
-                    asset_h['display_name']+"': '" + \
-                    str(int(asset_h['price_lovelace'])//1000000)+"'}); \n"
+            html_template = open("template.html", "rt")
+            html_graph = html_template.read()
 
-                html_template = open("template.html", "rt")
-                html_graph = html_template.read()
-
-                html_graph = html_graph.replace(
-                    "<script src='http://unpkg.com/\
+        html_graph = html_graph.replace(
+            "<script src='http://unpkg.com/\
 candela/dist/candela.min.js' />".strip(),
-                    ""
-                )
-                html_graph = html_graph.replace(
-                    '#ARR_DATA_NAME#', "data_" + str(i)
-                )
-                html_graph = html_graph.replace(
-                    '#PUSH_DATA#', html_
-                )
-                html_graph = html_graph.replace(
-                    '#ARR_DATA#', arr_data
-                )
-                html_graph = html_graph.replace(
-                    '#DISPLAY_NAME#', asset_name
-                )
-                all_html = all_html+html_graph+"\n"
-                html_template.close()
+            ""
+        )
+        html_graph = html_graph.replace(
+            '#ARR_DATA_NAME#', "data_"+str(collection)
+        )
+        html_graph = html_graph.replace(
+            '#PUSH_DATA#', html_
+        )
+        html_graph = html_graph.replace(
+            '#ARR_DATA#', arr_data
+        )
+        html_graph = html_graph.replace(
+            '#DISPLAY_NAME#', asset_name
+        )
+        all_html = all_html+html_graph+"\n"
+        html_template.close()
     all_html = \
         "<script \
         src='http://unpkg.com/candela/dist/candela.min.js'/> \n" + \

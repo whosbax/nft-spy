@@ -80,8 +80,10 @@ class JpgStoreApi(ASpy, ISpy):
                     for asset in json_collection:
                         self.insert_asset(policy, asset)
                 elif has_error:
-                    self._logger.error("response api error[{}]" \
-                        .format(json_collection['error']))
+                    self._logger.error(
+                        "response api error[{}]"
+                        .format(json_collection['error'])
+                    )
                     self._logger.debug("try with new ip...")
                 else:
                     json_collection = {}
@@ -89,7 +91,12 @@ class JpgStoreApi(ASpy, ISpy):
             json_collection = self.mongo_client[db_collection_name].find({})
         return json_collection
 
-    def get_url_action(self, policy: str, action: str = None, cursor = 1) -> str:
+    def get_url_action(
+        self,
+        policy: str,
+        action: str = None,
+        cursor=1
+    ) -> str:
         action = JpgStoreApi.LISTINGS_ACTION \
             if (action is None) else action
         return JpgStoreApi.URL_PATTERN.format(
@@ -112,7 +119,8 @@ class JpgStoreApi(ASpy, ISpy):
         if (db_asset):
             if (db_asset['price_lovelace'] != price_lovelace):
                 if (db_asset['price_lovelace'] > price_lovelace):
-                    self._logger.debug("Last price {display_name}: {last_price}\
+                    self._logger.debug(
+                        "Last price {display_name}: {last_price} \
                          New price: {new_price}".format(
                             display_name=asset['display_name'],
                             last_price=db_asset['price_lovelace'],
@@ -196,4 +204,3 @@ class JpgStoreApi(ASpy, ISpy):
                 self.i_get_listings(policy)
             except Exception as exc:
                 self._logger.error(exc)
-                
