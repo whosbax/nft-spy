@@ -58,7 +58,7 @@ def show_asset_history(policy, asset, style='bar'):
                 asset_histo['display_name'] + "_" + str(policy)
         price = str(int(asset_histo['price_lovelace'])//1000000)
         chart['data']['labels'].append(
-            str(asset_histo['last_update'])
+            str(asset_histo['confirmed_at'])
         )
         chart['data']['datasets'][0]['data'].append(
             price
