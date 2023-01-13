@@ -120,7 +120,7 @@ class JpgStoreApi(ASpy, ISpy):
 
         for db_a in self.mongo_client[db_collection_listing]. \
             find(db_filter).\
-                sort("last_update", pymongo.DESCENDING).limit(1):
+                sort("confirmed_at", pymongo.DESCENDING).limit(1):
             self._logger.debug("found db_asset[{}]".format(db_a))
             db_asset = db_a
 
@@ -199,10 +199,11 @@ class JpgStoreApi(ASpy, ISpy):
         return self.mongo_client[db_collection_listing].find(
             db_filter, {
                 "price_lovelace": True,
+                "confirmed_at": True,
                 "last_update": True,
                 "display_name": True
             }
-        ).sort("last_update", pymongo.DESCENDING)
+        ).sort("confirmed_at", pymongo.DESCENDING)
 
     def process(self) -> any:
         collections = self.i_get_collections()
