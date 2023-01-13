@@ -24,7 +24,7 @@ class JpgStoreApi(ASpy, ISpy):
     LISTINGS_ACTION = "listings"
     TIME_ZONE = 'UTC'
     CONFIG = None
-    SLEEP_REQ_API = 30
+    SLEEP_REQ_API = 10
     SLEEP_PROCESS_API = 30
 
     def __init__(self):

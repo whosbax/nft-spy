@@ -4,9 +4,9 @@
 case "$1" in
   start)
     echo  "Starting nftspy"
-    $( which python3 ) $APP_PATH/main.py > /var/log/nftspy.log 2>&1 &
+    $( which python3 ) $APP_PATH/main.py >> /var/log/nftspy.log 2>&1 &
     echo  "Starting flask"
-    $( which python3 ) $APP_PATH/api.py > /var/log/flask.log 2>&1 &
+    $( which python3 ) $APP_PATH/api.py >> /var/log/flask.log 2>&1 &
     ;;
   stop)
     echo  "Stopping nftspy"
@@ -19,8 +19,8 @@ case "$1" in
   restart)
     echo  "stop & start nftspy"
     kill -9 $( pgrep python3 ) 
-    $( which python3 ) $APP_PATH/main.py > /var/log/nftspy.log 2>&1 &
-    $( which python3 ) $APP_PATH/api.py > /var/log/flask.log 2>&1 &
+    $( which python3 ) $APP_PATH/main.py >> /var/log/nftspy.log 2>&1 &
+    $( which python3 ) $APP_PATH/api.py >> /var/log/flask.log 2>&1 &
     ;;
   *)
     echo "Usage: /etc/init.d/nftspy {start|stop|restart}"
