@@ -62,14 +62,16 @@ class JpgStoreApi(ASpy, ISpy):
             action,
             policy
         )
-        json_collection = self.mongo_client[db_collection_name].find({})
         collection_exist = \
-            bool(len(list(json_collection)))
+            bool(len(list(self.mongo_client[db_collection_name].find({}))))
+        self._logger.debug("Try get collection from DB[{}]".format(cached))
+        self._logger.debug("Collection exist[{}]".format(collection_exist))
         if (not cached or not collection_exist):
             cursor = 1
             has_results = True
             has_error = False
             while (has_results and not has_error):
+                self._logger.debug("Start api request")
                 time.sleep(JpgStoreApi.SLEEP_REQ_API)
                 url = self.get_url_action(policy, action, cursor)
                 response = requests.get(url)
@@ -87,9 +89,12 @@ class JpgStoreApi(ASpy, ISpy):
                         "response api error[{}]"
                         .format(json_collection['error'])
                     )
-                    self._logger.debug("try with new ip...")
+                    self._logger.debug("to do try with new ip...")
                 else:
+                    self._logger.debug("Next collection...")
                     json_collection = {}
+        else:
+            json_collection = self.mongo_client[db_collection_name].find({})
         return json_collection
 
     def get_url_action(
@@ -108,6 +113,19 @@ class JpgStoreApi(ASpy, ISpy):
         )
 
     @Trace()
+    def get_last_record(self, policy: str, asset_id: str) -> any:
+        """Get last asset histo"""
+
+        db_asset = None
+        db_filter = {'asset_id': asset_id}
+        for db_a in self.mongo_client[policy]. \
+            find(db_filter).\
+                sort("confirmed_at", pymongo.DESCENDING).limit(1):
+            self._logger.debug("last record db_asset[{}]".format(db_a))
+            db_asset = db_a
+        return db_asset
+
+    @Trace()
     def insert_asset(self, policy: str, asset) -> any:
         db_collection_listing = "{}_{}".format(
             JpgStoreApi.LISTINGS_ACTION,
@@ -115,45 +133,40 @@ class JpgStoreApi(ASpy, ISpy):
         )
         asset_id = asset['asset_id']
         price_lovelace = asset['price_lovelace']
-        db_filter = {'asset_id': asset_id}
-        db_asset = None
-
-        for db_a in self.mongo_client[db_collection_listing]. \
-            find(db_filter).\
-                sort("confirmed_at", pymongo.DESCENDING).limit(1):
-            self._logger.debug("found db_asset[{}]".format(db_a))
-            db_asset = db_a
-
+        confirmed_at = asset['confirmed_at']
+        db_filter = {
+            'asset_id': asset_id,
+            'confirmed_at': confirmed_at
+        }
+        db_asset = \
+            self.mongo_client[db_collection_listing].find_one(db_filter)
         if (db_asset):
-            if (db_asset['price_lovelace'] != price_lovelace):
-                if (db_asset['price_lovelace'] > price_lovelace):
-                    self._logger.debug(
-                        "Last price {display_name}: {last_price} \
-                         New price: {new_price}".format(
-                            display_name=asset['display_name'],
-                            last_price=db_asset['price_lovelace'],
-                            new_price=asset['price_lovelace']
-                        )
-                    )
-                self._logger.debug(
-                    "asset db:[{db_asset}] fresh[{fresh_asset}]".format(
-                        db_asset=db_asset,
-                        fresh_asset=asset
-                    )
+            self._logger.debug("Asset exist, nothing to do...")
+            return False
+
+        last_record = self.get_last_record(
+            policy,
+            asset
+        )
+        self._logger.debug(
+            "asset db:[{db_asset}] fresh[{fresh_asset}]".format(
+                db_asset=db_asset,
+                fresh_asset=asset
+            )
+        )
+        if (last_record):
+            self._logger.debug(
+                "{display_name}: \
+                {last_price}->{new_price}".format(
+                    display_name=asset['display_name'],
+                    last_price=db_asset['price_lovelace'],
+                    new_price=asset['price_lovelace']
                 )
-                self._logger.debug(
-                    "Updated asset:\
-{asset_id} from {policy}\nPrice {last_price}->{new_price}"
-                    .format(
-                        asset_id=asset['asset_id'],
-                        policy=policy,
-                        last_price=db_asset['price_lovelace'],
-                        new_price=asset['price_lovelace']
-                    )
-                )
+            )
+            if (last_record['price_lovelace'] > price_lovelace):
+                self._logger.debug('PRICE DOWN !')
             else:
-                self._logger.debug("Same price, nothing to do...")
-                return False
+                self._logger.debug('PRICE UP !')
         else:
             self._logger.debug("New saved asset[{}]".format(
                 asset

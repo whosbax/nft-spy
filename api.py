@@ -114,13 +114,17 @@ def show_all(limit=None, style='bar'):
         cursor = 0
         file_template = open("template.html", "rt")
         html_template = file_template.read()
+        col_js_id = ""\
+            .join([char for char in collection if not char.isdigit()])
         html_template = html_template.replace(
-            '#COL#', str(collection)
-            .join([i for i in collection if not i.isdigit()])
+            '#COL#', col_js_id
         )
         chart = copy.deepcopy(chart_template)
         chart['data']['datasets'][0]['label'] = str(collection)
         for asset in spy_jpg_store.i_get_listings(collection, cached=True):
+            print("*"*30)
+            print(asset)
+            print("*"*30)
             if limit and cursor == int(limit):
                 break
             cursor = cursor + 1

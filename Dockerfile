@@ -10,6 +10,5 @@ RUN pip install -r ./requirements.txt
 
 RUN touch /var/log/nftspy.log && touch /var/log/flask.log
 COPY _docker/init.d/nftspy /etc/init.d/nftspy
-RUN chmod +x _docker/init.d/nftspy && chmod +x ./run.sh && chmod 755 /etc/init.d/nftspy && update-rc.d nftspy defaults
-
+RUN chmod +x _docker/init.d/nftspy && chmod 755 /etc/init.d/nftspy && update-rc.d nftspy defaults
 RUN for py_file in $( find -type f -name "*.py" );do pycodestyle --show-source --show-pep8 $py_file; done;
