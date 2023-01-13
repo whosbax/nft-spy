@@ -122,9 +122,6 @@ def show_all(limit=None, style='bar'):
         chart = copy.deepcopy(chart_template)
         chart['data']['datasets'][0]['label'] = str(collection)
         for asset in spy_jpg_store.i_get_listings(collection, cached=True):
-            print("*"*30)
-            print(asset)
-            print("*"*30)
             if limit and cursor == int(limit):
                 break
             cursor = cursor + 1
