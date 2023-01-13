@@ -71,7 +71,41 @@
     );
 
   #search asset
-    db.listings_11ebbfbfd62985cbae7330b95488b9dcf17ecb5e728442031362ad81.find({"display_name":"HungryCow#1277"})
+    db.listings_11ebbfbfd62985cbae7330b95488b9dcf17ecb5e728442031362ad81.find({"display_name":"HungryCow#1277"});
+
+  # remove duplicate entries from collection
+    db.listings_dac355946b4317530d9ec0cb142c63a4b624610786c2a32137d78e25.aggregate([
+        {
+          $group: {
+            _id: { asset_id: "$asset_id", price_lovelace: "$price_lovelace" },
+            _idsNeedsToBeDeleted: { $push: "$$ROOT._id" },
+            count: { $count: { } }
+          }
+        },
+
+        {
+          $project: {
+            _id: 0,
+            _idsNeedsToBeDeleted: { $slice: [ "$_idsNeedsToBeDeleted", 1, { $size: "$_idsNeedsToBeDeleted" } ] }
+          }
+        },
+        {
+          $unwind: "$_idsNeedsToBeDeleted" 
+        },
+
+        {
+          $group: { _id: "", _idsNeedsToBeDeleted: { $push: "$_idsNeedsToBeDeleted" } }
+        },
+        {$project : { _id : 0 }}
+
+      ]);
+
+
+    db.listings_a616aab3b18eb855b4292246bd58f9e131d7c8c25d1d1d7c88b666c4.deleteMany( { "_id" : {$in : [
+        ObjectId("63c15f432ff1d621c504fd03"),
+        ObjectId("63c1608ec4199380bbc86e53"),
+        ObjectId("63c179085afcd41d1e30b643")
+    ]}});
 
 
 ```

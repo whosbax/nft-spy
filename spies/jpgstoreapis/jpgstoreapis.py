@@ -1,4 +1,6 @@
 """Jpgstore spy"""
+import sys
+import traceback
 import time
 import os
 import logging
@@ -55,13 +57,14 @@ class JpgStoreApi(ASpy, ISpy):
         """
         action = JpgStoreApi.LISTINGS_ACTION \
             if (action is None) else action
-        json_collection = None
+
         db_collection_name = "{}_{}".format(
             action,
             policy
         )
+        json_collection = self.mongo_client[db_collection_name].find({})
         collection_exist = \
-            bool(len(list(self.mongo_client[db_collection_name].find({}))))
+            bool(len(list(json_collection)))
         if (not cached or not collection_exist):
             cursor = 1
             has_results = True
@@ -87,8 +90,6 @@ class JpgStoreApi(ASpy, ISpy):
                     self._logger.debug("try with new ip...")
                 else:
                     json_collection = {}
-        else:
-            json_collection = self.mongo_client[db_collection_name].find({})
         return json_collection
 
     def get_url_action(
@@ -115,7 +116,14 @@ class JpgStoreApi(ASpy, ISpy):
         asset_id = asset['asset_id']
         price_lovelace = asset['price_lovelace']
         db_filter = {'asset_id': asset_id}
-        db_asset = self.mongo_client[db_collection_listing].find_one(db_filter)
+        db_asset = None
+
+        for db_a in self.mongo_client[db_collection_listing]. \
+            find(db_filter).\
+                sort("last_update", pymongo.DESCENDING).limit(1):
+            self._logger.debug("found db_asset[{}]".format(db_a))
+            db_asset = db_a
+
         if (db_asset):
             if (db_asset['price_lovelace'] != price_lovelace):
                 if (db_asset['price_lovelace'] > price_lovelace):
@@ -204,3 +212,4 @@ class JpgStoreApi(ASpy, ISpy):
                 self.i_get_listings(policy)
             except Exception as exc:
                 self._logger.error(exc)
+                traceback.print_exception(*sys.exc_info())
