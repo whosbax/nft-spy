@@ -10,7 +10,7 @@ class ASpy():
         """ set spyer name
         """
         self.spy_name = spy_name
-        self._logger = Trace.get_logger(self.spy_name)
+        self._logger = Trace.get_logger(self)
 
     def set_logger_level(self, log_level=logging.DEBUG):
         """
