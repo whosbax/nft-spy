@@ -31,13 +31,24 @@ def show_asset_history(policy, asset, style='bar'):
             ]
         },
         'options': {
+            'parsing': {
+                'xAxisKey': 'asset.confirmed_at',
+                'yAxisKey': 'asset.price'
+            },
             'animations': {
                 'tension': {
                     'duration': '1000',
                     'easing': 'linear',
                     'from': 1,
                     'to': 0,
-                    'loop': 'true'
+                    'loop': 'false'
+                }
+            },
+            'plugins': {
+                'tooltip': {
+                    'callbacks': {
+                        'footer': {},
+                    }
                 }
             }
         },
@@ -53,15 +64,19 @@ def show_asset_history(policy, asset, style='bar'):
     chart = copy.deepcopy(chart_template)
     i = 0
     for asset_histo in datas:
+        asset_histo.pop('_id')
+        asset_histo.pop('last_update')
         if (not i):
             chart['data']['datasets'][0]['label'] = \
                 asset_histo['display_name'] + "_" + str(policy)
         price = str(int(asset_histo['price_lovelace'])//1000000)
+        asset_histo['price'] = price
         chart['data']['labels'].append(
             str(asset_histo['confirmed_at'])
         )
-        chart['data']['datasets'][0]['data'].append(
-            price
+        chart['data']['datasets'][0]['data'].append({
+            'asset': asset_histo
+            }
         )
     html_template = html_template.replace(
         '#CHART#', str(chart)
@@ -97,13 +112,24 @@ def show_all(limit=None, style='bar'):
             ]
         },
         'options': {
+            'parsing': {
+                'xAxisKey': 'asset.display_name',
+                'yAxisKey': 'asset.price'
+            },
             'animations': {
                 'tension': {
                     'duration': '1000',
                     'easing': 'linear',
                     'from': 1,
                     'to': 0,
-                    'loop': 'true'
+                    'loop': 'false'
+                }
+            },
+            'plugins': {
+                'tooltip': {
+                    'callbacks': {
+                        'footer': {},
+                    }
                 }
             }
         },
@@ -120,8 +146,10 @@ def show_all(limit=None, style='bar'):
             '#COL#', col_js_id
         )
         chart = copy.deepcopy(chart_template)
-        chart['data']['datasets'][0]['label'] = str(collection)
+        chart['data']['datasets'][0]['label'] = "Policy: {}".format(collection)
         for asset in spy_jpg_store.i_get_listings(collection, cached=True):
+            asset.pop('_id')
+            asset.pop('last_update')
             if limit and cursor == int(limit):
                 break
             cursor = cursor + 1
@@ -129,8 +157,10 @@ def show_all(limit=None, style='bar'):
             chart['data']['labels'].append(
                 asset['display_name']
             )
-            chart['data']['datasets'][0]['data'].append(
-                price
+            asset['price'] = price
+            chart['data']['datasets'][0]['data'].append({
+                    'asset': asset
+                }
             )
         html_template = html_template.replace(
             '#CHART#', str(chart)
