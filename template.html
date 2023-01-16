@@ -23,8 +23,6 @@
   <canvas id="#COL#"></canvas>
 </div>
 <script>
-  const #COL# = document.getElementById('#COL#');
-  var char_#COL# = #CHART#;
   footer = function (tooltipItems) {
         var div = document.getElementById('link-store');
         div.style.display='inline';
@@ -35,13 +33,18 @@
           for (const k in asset){
             div.innerHTML += "<b><u>"+k+"</u></b>: "+asset[k]+"<br/>";
           }
-          link = '<a href="https://www.jpg.store/asset/'+asset['asset_id']+'" target="_blank">open store</a><br/>';
+          histo = 'Link: <a href="/policy/'+asset['policy']+'/asset/'+asset['asset_id']+'" target="_blank">history</a><br/>';
+          link = 'Link: <a href="https://www.jpg.store/asset/'+asset['asset_id']+'" target="_blank">open store</a><br/>';
+          div.innerHTML += histo;
           div.innerHTML += link;
 
         });     
         return tooltip;   
   }
-  char_#COL#.options.plugins.tooltip.callbacks.footer = footer
+const #COL# = document.getElementById('#COL#');
+  var char_#COL# = #CHART#;
+if(window.location.href.match("polarArea") == null)
+    char_#COL#.options.plugins.tooltip.callbacks.footer = footer
   new Chart(#COL#, char_#COL#);
 </script>
 

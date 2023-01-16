@@ -116,16 +116,17 @@ def show_all(limit=None, style='bar'):
                 'xAxisKey': 'asset.display_name',
                 'yAxisKey': 'asset.price'
             },
-            'plugins': {
-                'tooltip': {
-                    'callbacks': {
-                        'footer': {},
-                    }
-                }
-            }
+            'plugins': {}
         },
     }
-
+    if (style != 'polarArea'):
+        chart_template['options']['plugins'] = {
+            'tooltip': {
+                'callbacks': {
+                    'footer': 'footer',
+                }
+            }
+        }
     html = ""
     for collection in spy_jpg_store.CONFIG['collections']:
         cursor = 0
@@ -139,8 +140,11 @@ def show_all(limit=None, style='bar'):
         chart = copy.deepcopy(chart_template)
         chart['data']['datasets'][0]['label'] = "Policy: {}".format(collection)
         assets = []
+        prices = []
+        labels = []
         list_col = spy_jpg_store.i_get_listings(collection, cached=True)
-        sorted_list_col = sorted(list_col, key=lambda asset: int(asset['price_lovelace']))
+        sorted_list_col = \
+            sorted(list_col, key=lambda asset: int(asset['price_lovelace']))
         for asset in sorted_list_col:
             asset.pop('_id')
             asset.pop('last_update')
@@ -149,8 +153,20 @@ def show_all(limit=None, style='bar'):
             cursor = cursor + 1
             price = int(int(asset['price_lovelace'])//1000000)
             asset['price'] = price
+            asset['policy'] = str(collection)
+            prices.append(price)
+            labels.append(asset['display_name'])
             assets.append({'asset': asset})
-        chart['data']['datasets'][0]['data'] = assets
+        if (style == 'polarArea'):
+            chart['data'] = {
+                'labels': labels,
+                'datasets': [{
+                    'data': prices,
+                    'label': collection
+                }]
+            }
+        else:
+            chart['data']['datasets'][0]['data'] = assets
         html_template = html_template.replace(
             '#CHART#', str(chart)
         )
