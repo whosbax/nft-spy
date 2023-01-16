@@ -94,8 +94,7 @@ class JpgStoreApi(ASpy, ISpy):
                     self._logger.debug("Next collection...")
                     json_collection = {}
         else:
-            json_collection = self.mongo_client[db_collection_name].find({})\
-                .sort("price_lovelace", pymongo.ASCENDING)
+            json_collection = self.mongo_client[db_collection_name].find({})
         return json_collection
 
     def get_url_action(

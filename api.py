@@ -116,15 +116,6 @@ def show_all(limit=None, style='bar'):
                 'xAxisKey': 'asset.display_name',
                 'yAxisKey': 'asset.price'
             },
-            'animations': {
-                'tension': {
-                    'duration': '1000',
-                    'easing': 'linear',
-                    'from': 1,
-                    'to': 0,
-                    'loop': 'false'
-                }
-            },
             'plugins': {
                 'tooltip': {
                     'callbacks': {
@@ -148,7 +139,9 @@ def show_all(limit=None, style='bar'):
         chart = copy.deepcopy(chart_template)
         chart['data']['datasets'][0]['label'] = "Policy: {}".format(collection)
         assets = []
-        for asset in spy_jpg_store.i_get_listings(collection, cached=True):
+        list_col = spy_jpg_store.i_get_listings(collection, cached=True)
+        sorted_list_col = sorted(list_col, key=lambda asset: int(asset['price_lovelace']))
+        for asset in sorted_list_col:
             asset.pop('_id')
             asset.pop('last_update')
             if limit and cursor == int(limit):
@@ -157,8 +150,7 @@ def show_all(limit=None, style='bar'):
             price = int(int(asset['price_lovelace'])//1000000)
             asset['price'] = price
             assets.append({'asset': asset})
-        chart['data']['datasets'][0]['data'] = \
-            sorted(assets, key=lambda asset: asset['asset']['price'])
+        chart['data']['datasets'][0]['data'] = assets
         html_template = html_template.replace(
             '#CHART#', str(chart)
         )
