@@ -147,21 +147,18 @@ def show_all(limit=None, style='bar'):
         )
         chart = copy.deepcopy(chart_template)
         chart['data']['datasets'][0]['label'] = "Policy: {}".format(collection)
+        assets = []
         for asset in spy_jpg_store.i_get_listings(collection, cached=True):
             asset.pop('_id')
             asset.pop('last_update')
             if limit and cursor == int(limit):
                 break
             cursor = cursor + 1
-            price = str(int(asset['price_lovelace'])//1000000)
-            chart['data']['labels'].append(
-                asset['display_name']
-            )
+            price = int(int(asset['price_lovelace'])//1000000)
             asset['price'] = price
-            chart['data']['datasets'][0]['data'].append({
-                    'asset': asset
-                }
-            )
+            assets.append({'asset': asset})
+        chart['data']['datasets'][0]['data'] = \
+            sorted(assets, key=lambda asset: asset['asset']['price']) 
         html_template = html_template.replace(
             '#CHART#', str(chart)
         )
