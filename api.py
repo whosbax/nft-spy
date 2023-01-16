@@ -63,6 +63,7 @@ def show_asset_history(policy, asset, style='bar'):
     )
     chart = copy.deepcopy(chart_template)
     i = 0
+    assets = []
     for asset_histo in datas:
         asset_histo.pop('_id')
         asset_histo.pop('last_update')
@@ -71,13 +72,12 @@ def show_asset_history(policy, asset, style='bar'):
                 asset_histo['display_name'] + "_" + str(policy)
         price = str(int(asset_histo['price_lovelace'])//1000000)
         asset_histo['price'] = price
-        chart['data']['labels'].append(
-            str(asset_histo['confirmed_at'])
-        )
-        chart['data']['datasets'][0]['data'].append({
+        assets.append({
             'asset': asset_histo
             }
         )
+    chart['data']['datasets'][0]['data'] = \
+        sorted(assets, key=lambda asset: asset['asset']['price'])
     html_template = html_template.replace(
         '#CHART#', str(chart)
     )
@@ -158,7 +158,7 @@ def show_all(limit=None, style='bar'):
             asset['price'] = price
             assets.append({'asset': asset})
         chart['data']['datasets'][0]['data'] = \
-            sorted(assets, key=lambda asset: asset['asset']['price']) 
+            sorted(assets, key=lambda asset: asset['asset']['price'])
         html_template = html_template.replace(
             '#CHART#', str(chart)
         )
